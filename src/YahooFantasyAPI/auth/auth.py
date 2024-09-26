@@ -2,6 +2,7 @@ import time
 import httpx
 import base64
 import json
+from ..request import make_request
 
 AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth"
 TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token"
@@ -12,19 +13,12 @@ def generate_url(client_id, redirect_uri='oob'):
 
 
 def generate_token(auth_code, auth_hash, redirect_uri='oob'):
-    client = httpx.Client()
-    req = client.build_request(
-        method='POST',
-        url=TOKEN_URL,
-        data={'grant_type': 'authorization_code',
-               'redirect_uri': redirect_uri,
-               'code': auth_code},
-        headers={
-            'Authorization': f'Basic {auth_hash}'
-        }
-    )
-
-    res = client.send(req)
+    res = make_request(url=TOKEN_URL,
+                       method='POST',
+                       headers={'Authorization': f'Basic {auth_hash}'},
+                       data={'grant_type': 'authorization_code',
+                             'redirect_uri': redirect_uri,
+                             'code': auth_code})
     token_data = res.content
     token_json = json.loads(token_data)
     token = Token(token_json["access_token"], token_json["refresh_token"], token_json["expires_in"])
@@ -56,12 +50,12 @@ def refresh_token(token, auth_hash, redirect_uri='oob'):
 
 
 class Token:
-    def __init__(self, access_token, refresh_token, expires_in):
+    def __init__(self, access_token, r_token, expires_in):
         self.access_token = access_token
-        self.refresh_token = refresh_token
+        self.refresh_token = r_token
         self.expires_in = expires_in
         self.created_at = time.time()
-    
+
     def __str__(self):
         return f'access_token: {self.access_token}\nrefresh_token: {self.refresh_token}\nexpires_in: {self.expires_in}\ncreated_at: {self.created_at}'
 
