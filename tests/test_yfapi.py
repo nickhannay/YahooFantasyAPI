@@ -1,5 +1,6 @@
 import pytest
 import webbrowser
+import json
 from src.YahooFantasyAPI import YFAPI
 
 
@@ -14,5 +15,5 @@ def test_get_teams():
     code = input('input auth code: ')
     yf_api.generate_token('id1', code)
     teams = yf_api.get_teams('id1')
-    print(teams)
+    print(json.dumps(teams, indent=4))
     

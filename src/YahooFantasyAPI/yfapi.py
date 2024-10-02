@@ -30,7 +30,7 @@ class YFAPI:
 
     def get_teams(self, user_id, team_ids=None):
         token = self.token_manager.get_valid_user_token(user_id)
-        res = team.get_teams(token=token, client=self.api_client, team_keys=team_ids)
-        print(res.text)
-        json_res = json.loads(res.text)
-        return json_res
+        teams = team.get_teams(token=token, client=self.api_client, team_keys=team_ids)
+        return teams
+    
+
