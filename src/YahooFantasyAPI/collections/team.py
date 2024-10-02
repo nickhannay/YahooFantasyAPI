@@ -24,7 +24,7 @@ def get_teams(token, client, team_keys=None):
 
 def get_roster(token, client, team_key, week=None):
     """
-        A function that retrieves the roster object for a provided team
+        A function that retrieves the roster provided team
     """
     if week is not None:
         url = f'/team/{team_key}/roster;week={week}'
@@ -39,7 +39,7 @@ def get_roster(token, client, team_key, week=None):
 
 def get_stats(token, client, team_key, week=None):
     """
-        A function that retrieves the stats for a roster on a specific team
+        A function that retrieves the stats for a provided team roster
     """
     if week is not None:
         url = f'/team/{team_key}/roster;week={week}/players/stats'
@@ -50,3 +50,5 @@ def get_stats(token, client, team_key, week=None):
     res_dict = xml2dict(res.text)
     stats = res_dict['fantasy_content']['team']['roster']
     return stats
+
+

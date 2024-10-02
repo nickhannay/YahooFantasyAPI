@@ -8,7 +8,6 @@ class APIClient:
             self.http_client.base_url = base_url
         if base_headers is not None:
             self.http_client.headers = base_headers
-            
 
     def get(self, url, headers=None):
         res = self.http_client.get(url=url,
@@ -20,4 +19,4 @@ class APIClient:
                                     headers=headers,
                                     data=data)
         return res
-
+    

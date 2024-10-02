@@ -33,3 +33,13 @@ class YFAPI:
         token = self.token_manager.get_valid_user_token(user_id)
         teams = team.get_teams(token=token, client=self.api_client, team_keys=team_ids)
         return teams
+
+    def get_roster(self, user_id, team_key):
+        token = self.token_manager.get_valid_user_token(user_id)
+        roster = team.get_roster(token, self.api_client, team_key)
+        return roster
+    
+    def get_stats(self, user_id, team_key):
+        token = self.token_manager.get_valid_user_token(user_id)
+        stats = team.get_stats(token, self.api_client, team_key)
+        return stats
