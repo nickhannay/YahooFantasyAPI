@@ -5,6 +5,7 @@ import json
 
 BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2"
 
+
 class YFAPI:
     '''
     A class that can be used to easily interface with the Yahoo Fantasy Sports API
@@ -32,5 +33,3 @@ class YFAPI:
         token = self.token_manager.get_valid_user_token(user_id)
         teams = team.get_teams(token=token, client=self.api_client, team_keys=team_ids)
         return teams
-    
-
