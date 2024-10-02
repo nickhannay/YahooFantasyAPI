@@ -1,6 +1,9 @@
-from .auth import auth
-import httpx 
+from .auth import TokenManager
+from .api_client import APIClient
+from .collections import team
+import json
 
+BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2"
 
 class YFAPI:
     '''
@@ -9,31 +12,25 @@ class YFAPI:
     Attributes:
         client_id (str): Client id assigned to the app by Yahoo
         client_secret (str): Client secret assigned to the app by Yahoo
-        redirect_uri (str, optional): The uri yahoo will redirect to upon authorization. Defaults to 'oob'  
+        redirect_uri (str, optional): The uri Yahoo will redirect to upon authorization. Defaults to 'oob' (out of band)
     Methods:
         generate_auth_url(): Creates the url used to prompt the user for authorization
-        generate_token(auth_code): Generates a token from the provided authorization code
+        generate_token(auth_code): Generates a token from the yahoo generated authorization code
     '''
     def __init__(self, client_id, client_secret, redirect_uri='oob'):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
-        self.http_client = httpx.Client()
+        self.token_manager = TokenManager(client_id, client_secret, redirect_uri)
+        self.api_client = APIClient(base_url=BASE_URL)
 
-    def generate_auth_url(self):
-        return auth.generate_url(self.client_id, self.redirect_uri)
+    def get_auth_url(self):
+        return self.token_manager.auth_url
 
-    def generate_token(self, auth_code):
-        auth_hash = auth.generate_hash(self.client_id, self.client_secret)
-        token = auth.generate_token(auth_code, auth_hash, self.redirect_uri)
-        self.http_client.headers = {'Authorization': f'Bearer {token.access_token}'}
+    def generate_token(self, user_id, auth_code):
+        token = self.token_manager.generate_user_token(user_id, auth_code)
         return token
 
-    '''def get_leagues(league_ids=None):
-        
-
-    def get_teams():'''
-
-
-
-
+    def get_teams(self, user_id, team_ids=None):
+        token = self.token_manager.get_valid_user_token(user_id)
+        res = team.get_teams(token=token, client=self.api_client, team_keys=team_ids)
+        print(res.text)
+        json_res = json.loads(res.text)
+        return json_res
