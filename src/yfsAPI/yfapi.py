@@ -1,8 +1,6 @@
-from .auth import TokenManager
-from .api_client import APIClient
+from .auth import TokenManager, AuthException
+from .api_client import APIClient, APIClientException
 from .collections import team
-import json
-
 BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2"
 
 
@@ -26,7 +24,10 @@ class YFAPI:
         return self.token_manager.auth_url
 
     def generate_token(self, user_id, auth_code):
-        token = self.token_manager.generate_user_token(user_id, auth_code)
+        try:
+            token = self.token_manager.generate_user_token(user_id, auth_code)
+        except AuthException as e:
+            raise
         return token
 
     def get_teams(self, user_id, team_ids=None):
@@ -38,8 +39,12 @@ class YFAPI:
         token = self.token_manager.get_valid_user_token(user_id)
         roster = team.get_roster(token, self.api_client, team_key)
         return roster
-    
+
     def get_stats(self, user_id, team_key):
         token = self.token_manager.get_valid_user_token(user_id)
         stats = team.get_stats(token, self.api_client, team_key)
         return stats
+
+
+class yfsAPIException(Exception):
+    

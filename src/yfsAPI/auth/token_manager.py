@@ -1,5 +1,5 @@
 from .token import Token
-from ..api_client import APIClient
+from ..api_client import APIClient, APIClientException, APIRequestException
 import json
 import base64
 
@@ -14,7 +14,7 @@ def generate_hash(client_id, client_secret):
 
 
 class TokenManager():
-    def __init__(self, client_id, client_secret, redirect_uri):
+    def __init__(self, client_id, client_secret, redirect_uri="oob"):
         self.auth_url = f'{AUTH_URL}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&language=en-us'
         self.tokens = {}
         self.redirect_uri = redirect_uri
@@ -22,14 +22,23 @@ class TokenManager():
         self.api_client = APIClient(base_headers={'Authorization': f'Basic {self.auth_hash}'})
 
     def generate_user_token(self, user_id, auth_code):
-        res = self.api_client.post(url=TOKEN_URL,
-                                   data={'grant_type': 'authorization_code',
-                                         'redirect_uri': self.redirect_uri,
-                                         'code': auth_code})
-        token_json = json.loads(res.content)
-        token = Token(token_json["access_token"], token_json["refresh_token"], token_json["expires_in"])
-        self.tokens[user_id] = token
-        return token
+        try:
+            res = self.api_client.post(url=TOKEN_URL,
+                                    data={'grant_type': 'authorization_code',
+                                            'redirect_uri': self.redirect_uri,
+                                            'code': auth_code})
+            res_json = json.loads(res.content)
+            token = Token(res_json["access_token"], res_json["refresh_token"], res_json["expires_in"])
+            self.tokens[user_id] = token
+            return token
+        
+        except APIClientException:
+            raise
+
+        except APIRequestException as e:
+            raise AuthException(e.name, e.desc) from e
+        
+        
 
     def refresh_token(self, token):
         res = self.api_client.post(url=TOKEN_URL,
@@ -47,3 +56,10 @@ class TokenManager():
         elif not token.is_valid():
             self.refresh_token(token)
         return token
+
+
+class AuthException(Exception):
+    def __init__(self, name: str, desc: str):
+        self.name = name
+        self.desc = desc
+        super().__init__(f'Authentication Error [{name}]:\n\t{desc}')
