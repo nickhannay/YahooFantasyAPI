@@ -28,17 +28,17 @@ class APIClient:
             res.raise_for_status()
             return res
         except httpx.RequestError as e:
-            raise APIClientException(f'{e}', e) from e
+            raise APIClientException(f'{e}') from e
         except httpx.HTTPStatusError as e:
             res = json.loads(e.response.content)
-            raise APIRequestException(res['error'], res['error_description']) from e
+            exc = APIRequestException(res['error'], res['error_description'])
+            raise exc from e
     
 
 
 class APIClientException(Exception):
-    def __init__(self, msg: str, org_exception: Exception = None):
+    def __init__(self, msg: str):
         self.msg = msg
-        self.org_exception = org_exception
         super().__init__(f'Request to external Yahoo API failed:\n\t{msg}')
 
 
@@ -46,4 +46,4 @@ class APIRequestException(Exception):
     def __init__(self, name: str, desc: str):
         self.name = name
         self.desc = desc
-        super().__init__(f'Invalid request {name}:\n\r{desc}')
+        super().__init__(f'Request Error - {name}:\n\t{desc}')

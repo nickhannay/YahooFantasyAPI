@@ -26,9 +26,10 @@ class YFAPI:
     def generate_token(self, user_id, auth_code):
         try:
             token = self.token_manager.generate_user_token(user_id, auth_code)
+            return token
         except AuthException as e:
-            raise
-        return token
+            raise yfsApiException(e.name, e.desc) from e
+        
 
     def get_teams(self, user_id, team_ids=None):
         token = self.token_manager.get_valid_user_token(user_id)
@@ -46,5 +47,10 @@ class YFAPI:
         return stats
 
 
-class yfsAPIException(Exception):
-    
+# Exceptions
+
+class yfsApiException(Exception):
+    def __init__(self, name: str, desc: str):
+        self.name = name
+        self.desc = desc
+        super().__init__(f'{name}:\n\t{desc}')

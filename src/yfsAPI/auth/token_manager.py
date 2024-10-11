@@ -32,13 +32,13 @@ class TokenManager():
             self.tokens[user_id] = token
             return token
         
-        except APIClientException:
-            raise
+        except APIClientException as e:
+            raise AuthException('ExternalServerError', e.msg) from e
 
         except APIRequestException as e:
             raise AuthException(e.name, e.desc) from e
         
-        
+
 
     def refresh_token(self, token):
         res = self.api_client.post(url=TOKEN_URL,

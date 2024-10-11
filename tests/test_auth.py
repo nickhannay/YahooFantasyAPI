@@ -10,18 +10,24 @@ load_dotenv('../.env')
 
 @pytest.fixture
 def token_manager():
-    return TokenManager(os.environ.get('client_id'), os.environ.get('client_secret'))
+    def __create_token_manager(redirect_url='oob'):
+        return TokenManager(os.environ.get('client_id'), os.environ.get('client_secret'), redirect_url)
+    return __create_token_manager
+
+@pytest.fixture
+def auth_code(token_manager):
+    webbrowser.open(token_manager().auth_url)
+    return input('enter auth code: ')
+    
 
 
 def test_auth_url(token_manager):
-    url = token_manager.auth_url
-    assert url == f'https://api.login.yahoo.com/oauth2/request_auth?client_id={client_id}&redirect_uri=oob&response_type=code&language=en-us'
+    url = token_manager().auth_url
+    assert url == f'https://api.login.yahoo.com/oauth2/request_auth?client_id={os.environ.get('client_id')}&redirect_uri=oob&response_type=code&language=en-us'
 
 
-def test_generate_valid_token(token_manager):
-    webbrowser.open(token_manager.auth_url)
-    auth_code = input('enter auth code: ')
-    token = token_manager.generate_user_token('id1', auth_code)
+def test_generate_valid_token(token_manager, auth_code):
+    token = token_manager().generate_user_token('id1', auth_code)
     assert isinstance(token, Token)
     assert hasattr(token, 'access_token')
     assert hasattr(token, 'refresh_token')
@@ -30,7 +36,11 @@ def test_generate_valid_token(token_manager):
 
 def test_generate_token_invalid_code(token_manager):
     with pytest.raises(AuthException):
-        token_manager.generate_user_token('id2', 'invalid')
+        token_manager().generate_user_token('id2', 'invalid')
+
+def test_generate_token_invalid_redirect(token_manager, auth_code):
+    with pytest.raises(AuthException):
+        token_manager('httx://fake url').generate_user_token('id3', auth_code)
 
 
 '''def test_refresh_token():
