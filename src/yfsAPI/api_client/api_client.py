@@ -37,9 +37,10 @@ class APIClient:
 
 
 class APIClientException(Exception):
-    def __init__(self, msg: str):
-        self.msg = msg
-        super().__init__(f'Request to external Yahoo API failed:\n\t{msg}')
+    def __init__(self, desc: str):
+        self.desc = desc
+        self.name = 'API_CLIENT_ERROR'
+        super().__init__(f'{self.name}:\n\t{desc}')
 
 
 class APIRequestException(Exception):

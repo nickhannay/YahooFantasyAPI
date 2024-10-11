@@ -33,7 +33,7 @@ class TokenManager():
             return token
         
         except APIClientException as e:
-            raise AuthException('ExternalServerError', e.msg) from e
+            raise AuthException(e.name, e.desc) from e
 
         except APIRequestException as e:
             raise AuthException(e.name, e.desc) from e
