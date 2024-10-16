@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 import os 
 
-from src.yfsAPI.auth import TokenManager, Token, AuthException
+from src.yfsAPI.auth import TokenManager, Token, InvalidAuthCodeException, InvalidRedirectURIException, ExpiredAuthCodeException
 
 load_dotenv('../.env')
 
@@ -27,19 +27,25 @@ def test_auth_url(token_manager):
 
 
 def test_generate_valid_token(token_manager, auth_code):
-    token = token_manager().generate_user_token('id1', auth_code)
+    code = auth_code
+    token = token_manager().generate_user_token('id1', code)
     assert isinstance(token, Token)
     assert hasattr(token, 'access_token')
     assert hasattr(token, 'refresh_token')
     assert token.created_at <= time.time()
 
 
+def test_generate_token_expired_code(token_manager, auth_code):
+    with pytest.raises(ExpiredAuthCodeException):
+        token_manager().generate_user_token('id10T', auth_code)
+
+
 def test_generate_token_invalid_code(token_manager):
-    with pytest.raises(AuthException):
+    with pytest.raises(InvalidAuthCodeException):
         token_manager().generate_user_token('id2', 'invalid')
 
 def test_generate_token_invalid_redirect(token_manager, auth_code):
-    with pytest.raises(AuthException):
+    with pytest.raises(InvalidRedirectURIException):
         token_manager('httx://fake url').generate_user_token('id3', auth_code)
 
 

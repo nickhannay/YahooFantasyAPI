@@ -28,23 +28,29 @@ class APIClient:
             res.raise_for_status()
             return res
         except httpx.RequestError as e:
-            raise APIClientException(f'{e}') from e
+            raise FailedRequestException(f'{e}') from e
         except httpx.HTTPStatusError as e:
             res = json.loads(e.response.content)
-            exc = APIRequestException(res['error'], res['error_description'])
+            exc = InvalidRequestException(res['error'], res['error_description'])
             raise exc from e
     
 
-
 class APIClientException(Exception):
-    def __init__(self, desc: str):
+    def __init__(self, name: str, desc: str = ""):
         self.desc = desc
-        self.name = 'API_CLIENT_ERROR'
-        super().__init__(f'{self.name}:\n\t{desc}')
+        self.name = name
+        super().__init__(f'API Client Exception [{self.name}]:\n\t{self.desc}')
 
 
-class APIRequestException(Exception):
-    def __init__(self, name: str, desc: str):
+class FailedRequestException(APIClientException):
+    def __init__(self, name: str, desc: str = ""):
+        self.desc = desc
+        self.name = name
+        super().__init__(name, desc)
+
+
+class InvalidRequestException(APIClientException):
+    def __init__(self, name: str, desc: str =""):
         self.name = name
         self.desc = desc
-        super().__init__(f'Request Error - {name}:\n\t{desc}')
+        super().__init__(name, desc)

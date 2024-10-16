@@ -1,5 +1,5 @@
 from .token import Token
-from ..api_client import APIClient, APIClientException, APIRequestException
+from ..api_client import APIClient, InvalidRequestException, FailedRequestException, APIClientException
 import json
 import base64
 
@@ -32,12 +32,17 @@ class TokenManager():
             self.tokens[user_id] = token
             return token
         
-        except APIClientException as e:
-            raise AuthException(e.name, e.desc) from e
-
-        except APIRequestException as e:
-            raise AuthException(e.name, e.desc) from e
-        
+        except InvalidRequestException as e:
+            match e.name:
+                case 'INVALID_AUTHORIZATION_CODE':
+                    # auth code is incorrect
+                    raise InvalidAuthCodeException(e.name, e.desc) from e
+                case 'invalid_grant':
+                    # auth code has already been used
+                    raise ExpiredAuthCodeException(e.name, e.desc) from e
+                case 'INVALID_REDIRECT_URI':
+                    # redirect given in auth_url doesn't match redirect on Yahoo
+                    raise InvalidRedirectURIException(e.name, e.desc) from e
 
 
     def refresh_token(self, token):
@@ -63,3 +68,15 @@ class AuthException(Exception):
         self.name = name
         self.desc = desc
         super().__init__(f'Authentication Error [{name}]:\n\t{desc}')
+
+
+class InvalidAuthCodeException(AuthException):
+    pass
+
+
+class ExpiredAuthCodeException(AuthException):
+    pass
+
+
+class InvalidRedirectURIException(AuthException):
+    pass 

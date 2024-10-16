@@ -1,4 +1,4 @@
-from ..utils import xml2dict
+from yfsAPI.utils import xml2dict
 
 
 def get_teams(token, client, team_keys=None):
@@ -24,7 +24,7 @@ def get_teams(token, client, team_keys=None):
 
 def get_roster(token, client, team_key, week=None):
     """
-        A function that retrieves the roster provided team
+        A function that retrieves the roster for a given team
     """
     if week is not None:
         url = f'/team/{team_key}/roster;week={week}'

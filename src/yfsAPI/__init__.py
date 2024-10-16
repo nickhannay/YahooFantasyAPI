@@ -1,1 +1,1 @@
-from .yfapi import YFAPI
+from .yfsapi import yfsAPI, yfsExpiredAuthCodeException, yfsExternalException, yfsInvalidAuthCodeException, yfsInvalidRedirectURIException
